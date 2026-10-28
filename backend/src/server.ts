@@ -17,7 +17,11 @@ async function shutdown() {
     await closeDatabase();
     process.exit(0);
   });
-  setTimeout(() => process.exit(1), 10_000).unref();
+  const shutdownTimeout: NodeJS.Timeout = setTimeout(
+    () => process.exit(1),
+    10_000,
+  );
+  shutdownTimeout.unref();
 }
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);

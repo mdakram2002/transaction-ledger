@@ -8,7 +8,7 @@ export const env = {
   get mongoDbName() {
     return process.env.MONGODB_DB_NAME;
   },
-  frontendOrigins:
-    process.env.FRONTEND_URL?.split(",").map((origin) => origin.trim()) ??
-    "http://localhost:5173",
+  frontendOrigins: process.env.FRONTEND_URL?.split(",").map((origin) =>
+    origin.trim(),
+  ) ?? ["http://localhost:5173"],
 };

@@ -1,12 +1,28 @@
-import type { ErrorRequestHandler } from "express";
+import type {
+  ErrorRequestHandler,
+  NextFunction,
+  Request,
+  RequestHandler,
+  Response,
+} from "express";
+import { MongoServerError } from "mongodb";
 import { ZodError } from "zod";
 import { HttpError } from "../utils/http-error.js";
 
-export const notFoundHandler = (_req: any, _res: any, next: any) => {
+export const notFoundHandler: RequestHandler = (
+  _req: Request,
+  _res: Response,
+  next: NextFunction,
+) => {
   next(new HttpError(404, "NOT_FOUND", "Route was not found"));
 };
 
-export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+export const errorHandler: ErrorRequestHandler = (
+  err: unknown,
+  _req,
+  res,
+  _next,
+) => {
   if (err instanceof ZodError) {
     res.status(400).json({
       success: false,
@@ -22,7 +38,7 @@ export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     return;
   }
 
-  if (err?.code === 11000) {
+  if (err instanceof MongoServerError && err.code === 11000) {
     res.status(409).json({
       success: false,
       error: {

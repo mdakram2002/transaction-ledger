@@ -1,4 +1,4 @@
-import { MongoClient, type Collection } from "mongodb";
+import { MongoClient, type Collection, type MongoClientOptions } from "mongodb";
 import { env } from "./env.js";
 import type { Account, LedgerTransaction } from "../types/models.js";
 
@@ -10,7 +10,10 @@ export async function connectDatabase() {
   if (!env.mongoUri || !env.mongoDbName) {
     throw new Error("MONGODB_URI and MONGODB_DB_NAME are required");
   }
-  client = new MongoClient(env.mongoUri, { serverSelectionTimeoutMS: 10000 });
+  const clientOptions = {
+    serverSelectionTimeoutMS: 10000,
+  } satisfies MongoClientOptions;
+  client = new MongoClient(env.mongoUri, clientOptions);
   await client.connect();
 
   const db = client.db(env.mongoDbName);
