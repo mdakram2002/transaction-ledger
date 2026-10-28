@@ -109,6 +109,3 @@ npm run build
 
 For API smoke checks, use `curl` or Postman. Create an account, use its returned `id`, then post a transaction with a fresh `reference_id` and check the balance and history routes.
 
-## Limitations and interview notes
-
-There is no authentication or authorization, so deploy only for a controlled assessment. CORS and rate limiting are baseline controls, not access control. Aggregate balance on the dashboard sums the returned first 100 accounts; use an aggregate endpoint if account volume can exceed that threshold. Account and transaction timestamps are server generated. Atlas transactions provide the all-or-nothing guarantee, and conditional debit updates prevent concurrent overdrafts. Render/Vercel/Atlas provisioning and production deployment must be performed with account credentials and are not performed by this repository setup.
