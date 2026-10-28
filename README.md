@@ -16,12 +16,10 @@ A full stack account ledger built with React, TypeScript, Express, MongoDB, and 
 - `backend/src/validators/` — Zod request schemas.
 - `backend/src/middleware/` — async routing, rate limiting, and centralized errors.
 - `backend/src/types/` and `backend/src/utils/` — shared models and API serialization.
-- `render.yaml` — Render web service blueprint.
-- `vercel.json` — SPA fallback for Vercel.
 
 ## Requirements and local setup
 
-Use Node.js 20 or newer and a MongoDB Atlas replica-set cluster (or a local replica set). Multi-document transactions are mandatory; the service fails to start if MongoDB cannot connect, and it never falls back to separate writes.
+Use Node.js 22 LTS and a MongoDB Atlas replica-set cluster (or a local replica set). Multi-document transactions are mandatory; the service fails to start if MongoDB cannot connect, and it never falls back to separate writes.
 
 ```sh
 npm install
@@ -100,12 +98,37 @@ npm test
 npm run build
 ```
 
-## Deployment
+## Production deployment
 
-1. Create an Atlas replica-set cluster and a dedicated database user with read/write access to the application database. Restrict network access to the Render service's egress IPs where practical.
-2. Push this repository to GitHub. In Render, create a Blueprint from `render.yaml` or a Node web service rooted at `backend`, with build `npm install && npm run build`, start `npm start`, and health path `/api/health`. Set `MONGODB_URI`, `MONGODB_DB_NAME`, and `FRONTEND_URL` in Render's secret environment settings.
-3. Import the repository into Vercel with root directory `frontend`, framework Vite, and build command `npm run build`. Set `VITE_API_BASE_URL` to the Render origin, e.g. `https://your-service.onrender.com`, then redeploy.
-4. Set Render `FRONTEND_URL` to the deployed Vercel origin and redeploy. Verify `/api/health`, create an account, and post a transaction through the UI.
+The production frontend is [transaction-ledger-three.vercel.app](https://transaction-ledger-three.vercel.app/) and the API is hosted on Render at [transaction-ledger-zwm0.onrender.com](https://transaction-ledger-zwm0.onrender.com). The frontend sends API requests to the Render service; it never connects to MongoDB directly.
+
+### Render backend
+
+Configure the Render Node service with the repository's `backend` directory as its root, build command `npm install && npm run build`, start command `npm start`, and health check path `/api/health`. Add these environment variables in the Render dashboard:
+
+| Variable | Production value |
+| --- | --- |
+| `MONGODB_URI` | MongoDB Atlas connection URI (keep secret; do not commit it) |
+| `MONGODB_DB_NAME` | `transaction_ledger` |
+| `FRONTEND_URL` | `https://transaction-ledger-three.vercel.app` |
+
+Make sure the Atlas cluster is active, its database user has the needed access, and its network access settings allow connections from Render.
+
+### Vercel frontend
+
+Keep the Vercel project root at the repository root so it can use the npm workspaces. Set the build command to `npm run build` and the output directory to `frontend/dist`. Add this production environment variable in Vercel:
+
+| Variable | Production value |
+| --- | --- |
+| `VITE_API_BASE_URL` | `https://transaction-ledger-zwm0.onrender.com` |
+
+The API base URL is the Render origin only; do not append `/api`. The frontend adds API paths itself. Redeploy Vercel after changing this variable. Redeploy Render after changing its environment variables.
+
+### Verify the deployment
+
+1. Open [`/api/health`](https://transaction-ledger-zwm0.onrender.com/api/health) on the Render service and confirm it responds successfully.
+2. Open the Vercel frontend, create an account, and post a transaction.
+3. If browser requests are blocked, confirm Render's `FRONTEND_URL` exactly matches the deployed frontend origin, with no trailing slash or path.
 
 For API smoke checks, use `curl` or Postman. Create an account, use its returned `id`, then post a transaction with a fresh `reference_id` and check the balance and history routes.
 
